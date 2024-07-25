@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="users">
+	<!-- 회원가입 시 기본 auth_code 0으로 잡아 승인 대기 -->
+	<insert id="insertUser" parameterType="UserVo">
+		INSERT INTO users (user_no,
+		user_name, password, branch_id, auth_code)
+		VALUES (#{userNo}, #{name},
+		#{password}, #{branchId}, 0)
+	</insert>
+
+	<!-- name 정보로 사용자 정보 select (중복 가입 막기) -->
+	<select id="selectUserByName" parameterType="string"
+		resultType="UserVo">
+		select user_no as no, user_name as name from users where
+		user_name = #{value}
+	</select>
+
+	<!-- 로그인용 name 정보로 사용자 정보 select -->
+	<select id="selectUserByNameForLogin" parameterType="string"
+		resultType="UserVo">
+		select user_no as no, user_name as name, branch_id as
+		branchId, auth_code as
+		authCode
+		from users
+		where user_name = #{username}
+	</select>
+
+	<!-- name과 비밀번호로 사용자 정보 select (로그인) -->
+	<select id="selectUserByNameAndPassword" parameterType="map"
+		resultType="UserVo">
+		select user_no as no, user_name as name, branch_id as
+		branchId, auth_code as authCode from users where user_name = #{name}
+		and password = #{password}
+	</select>
+
+	<!-- user list 전체 출력 -->
+	<select id="selectUserList" resultType="UserVo">
+		SELECT user_no AS no,
+		user_name AS name, branch_id AS branchId, auth_code AS authCode
+		FROM
+		users
+		ORDER BY authCode, user_no DESC
+
+	</select>
+
+	<!-- 승인 대기 계정 갯수 출력 -->
+	<select id="countUserCode0" resultType="long">
+		SELECT COUNT(*) FROM
+		users WHERE auth_code = '0'
+	</select>
+
+	<!-- 계정 삭제 -->
+	<delete id="deleteUserAcount" parameterType="long">
+		delete from users
+		where user_no = #{no}
+	</delete>
+
+	<!-- 계정 승인 기능 -->
+	<update id="confirmUserAcount" parameterType="map">
+		update users set
+		auth_code = #{authCode} where user_no = #{no}
+	</update>
+
+	<select id="selectBookOrdersByMonthYear" resultType="UserVo">
+		SELECT
+		ORDER_ID, ORDER_DATE, CHECKED
+		FROM book_order
+
+	</select>
+	
+	<!-- 지점 목록 출력 기능 -->
+	<select id = "selectBranchList" resultType="UserVo">
+		SELECT branch_id as branchId, branch_name as branchName FROM branch
+	</select>
+	
+	<select id="selectAllBookOrders" resultType="UserVo">
+		SELECT
+		ORDER_ID AS orderId,
+		BRANCH_ID AS branchId,
+		ORDER_DATE AS orderDate,
+		CHECKED AS checked
+		FROM
+		book_order
+	</select>
+
+	<select id="getBranchListSummary" resultType="UserVo">
+		SELECT
+            bo.ORDER_ID AS orderId,
+            bo.BRANCH_ID AS branchId,
+            bo.ORDER_DATE AS orderDate,
+            bl.BOOK_NAME AS bookName,
+            od.QUANTITY AS quantity,
+            bo.CHECKED AS checked
+        FROM
+            book_order bo
+        LEFT JOIN
+            order_detail od ON bo.ORDER_ID = od.ORDER_ID
+        LEFT JOIN
+            book_list bl ON od.BOOK_CODE = bl.BOOK_CODE
+        WHERE
+            bo.CHECKED = '2'
+            AND bo.ORDER_ID IS NOT NULL
+            AND bo.BRANCH_ID IS NOT NULL
+            AND bo.ORDER_DATE IS NOT NULL
+            AND bl.BOOK_NAME IS NOT NULL
+            AND od.QUANTITY IS NOT NULL
+        ORDER BY
+            bo.ORDER_DATE
+	</select>
+
+
+
+</mapper>
