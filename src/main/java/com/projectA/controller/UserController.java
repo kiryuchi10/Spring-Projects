@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.projectA.repository.vo.UserVo;
 import com.projectA.service.UserService;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @RequestMapping("/user")
@@ -78,6 +79,18 @@ public class UserController {
 	public String loginform () {
 		return "users/loginform";
 	}
+	@PostMapping("/login")
+	public String loginAction(@RequestParam(value="name", required=false, defaultValue="") String name,
+	                          @RequestParam(value="password", required=false, defaultValue="") String password,
+	                          HttpSession session) {
+
+	    if (name.length() == 0 || password.length() == 0) {
+	        // If name or password is not entered, redirect to login page.
+	        return "redirect:/user/login";
+	    }
+		return "admins/admin_home";
+	}
+
 
 
     @RequestMapping("/calendar")
